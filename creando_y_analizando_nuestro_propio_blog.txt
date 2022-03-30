@@ -1,0 +1,39 @@
+Requerimientos
+
+--1. Crear base de datos llamada blog.
+create database blog;
+\c blog;
+
+--2. Crear las tablas indicadas de acuerdo al modelo de datos.
+create table usuarios(id int primary key, email varchar(100) not null);
+create table post(id int primary key, usuario_id int not null, titulo varchar(100) not null, fecha date not null, foreign key(usuario_id) references usuarios(id));
+create table comentarios(id int primary key, usuario_id int not null, post_id int not null, texto varchar(300) not null, fecha date not null, foreign key(usuario_id) references usuarios(id), foreign key(post_id) references post(id));
+
+--3. Insertar los siguientes registros.
+\copy usuarios from 'C:\Users\step\Desktop\usuarios.csv' csv header;
+\copy post from 'C:\Users\step\Desktop\post.csv' csv header;
+\copy comentarios from 'C:\Users\step\Desktop\comentarios.csv' csv header;
+
+--4. Seleccionar el correo, id y título de todos los post publicados por el usuario 5.
+select u.email, p.id, p.titulo from usuarios u inner join post p on u.id=p.usuario_id where u.id=5;
+
+--5. Listar el correo, id y el detalle de todos los comentarios que no hayan sido realizados por el usuario con email usuario06@hotmail.com.
+select u.email, c.id, c.texto, c.fecha from usuarios u inner join comentarios c on u.id=c.usuario_id where u.email <> 'usuario06@hotmail.com';
+
+--6. Listar los usuarios que no han publicado ningún post.
+select u.*, p.titulo from usuarios u left join post p on u.id=p.usuario_id where p.usuario_id is null;
+select u.*, p.titulo from usuarios u full outer join post p on u.id=p.usuario_id where p.usuario_id is null;
+select * from usuarios where id not in (select usuario_id from post);
+
+--7. Listar todos los post con sus comentarios (incluyendo aquellos que no poseen comentarios).
+select p.titulo, p.fecha as fecha_post, c.texto, c.fecha as fecha_comentario from post p full outer join comentarios c on p.id=c.post_id;
+
+--8. Listar todos los usuarios que hayan publicado un post en Junio.
+select u.email, p.titulo, p.fecha from usuarios u inner join post p on u.id=p.usuario_id where p.fecha between '2020-06-01' and '2020-06-30';
+
+--Desafio adicional: incluyendo el usuario creador del post y usuario (seguidor) creador del comentario. 
+select up.email as usuario_creador, p.titulo, p.fecha as fecha_post, c.texto, uc.email as usuario_seguidor, c.fecha as fecha_comentario from post p inner join usuarios up on up.id=p.usuario_id left join comentarios c on c.post_id=p.id left join usuarios uc on c.usuario_id=uc.id;
+
+
+
+
